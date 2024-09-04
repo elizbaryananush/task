@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   String       @id @default(cuid())
+  username             String       @unique
+  name                 String
+  password             String
+  acts                 Act[]
+  followerConnections  Connection[] @relation("FollowerUser")
+  followingConnections Connection[] @relation("FollowingUser")
+
+  @@map("user")
+}
+
+model Connection {
+  id              String @id @default(cuid())
+  followerId      String @map("follower_id")
+  followingId     String @map("following_id")
+  followerUser  User   @relation("FollowerUser", fields: [followerId], references: [id])
+  followingUser User   @relation("FollowingUser", fields: [followingId], references: [id])
+
+  @@unique([followingId, followerId])
+  @@map("connection")
+}
+
+model Act {
+  id          String   @id @default(cuid())
+  user_id     String
+  header      String
+  description String
+  created_at  DateTime @default(now())
+  user        User     @relation(fields: [user_id], references: [id])
+
+  @@map("act")
+}
